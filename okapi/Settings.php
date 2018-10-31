@@ -8,7 +8,7 @@ use okapi\core\OkapiErrorHandler;
 use okapi\locale\Locales;
 
 # DO NOT MODIFY THIS FILE. This file should always look like the original here:
-# https://github.com/opencaching/okapi/blob/master/okapi/settings.php
+# https://github.com/opencaching/okapi/blob/master/okapi/Settings.php
 #
 # HOW TO MODIFY OKAPI SETTINGS: If you want a setting X to have a value of Y,
 # create/edit the "<rootpath>/okapi_settings.php" file. See example here:
@@ -233,6 +233,45 @@ final class Settings
          * This setting allow to decide which way should be used for local node.
          */
         'USE_SQL_SUBQUERIES' => false,
+
+        /**
+         * A timeout in seconds of remote URL call processing, common for each
+         * call. Only positive integers are in effect. May not work correctly if
+         * a small value (less than 5) is declared.
+         */
+        'REMOTE_URL_CALL_TIMEOUT' => 30,
+
+        /**
+         * An optional key passed in remote URL call in 'OKAPI-Key' header, if
+         * the key value is not empty. The value is common for each call. May be
+         * used by remote service to verify the caller is the correct OKAPI app.
+         * (The 'X-' prefixed header is against recommendation RFC 6648)
+         */
+        'REMOTE_URL_CALL_KEY' => '',
+
+        /**
+         * A remote URL call exception handling strategy, common for each call.
+         * Possible values in alphabetical order:
+         * 'common' - the exceptions are handled in common OKAPI way, with mails
+         *     sent, output etc. CAUTION: it will interfere with a service call
+         *     output when remote URL is called from within it,
+         * 'inner' - (default) works like a 'common' strategy, but without
+         *     passing the error output,
+         * 'log' - the exception is written to error log only,
+         * 'skip' - the exception is siletly skipped.
+         */
+        'REMOTE_URL_CALL_EXCEPTION_HANDLING' => 'inner',
+
+        /**
+         * An URL, preferably a local one, of service performing post-processing
+         * of successfully submitted cache logs. The hook can make available
+         * to OKAPI some common operations regarding logs submitted directly via
+         * web page.
+         *
+         * OKAPI calls the service URL using POST method, passing the 'log_uuids'
+         * parameter containing saved logs UUIDs separated by '|'.
+         */
+        'POST_LOG_HOOK' => null,
     );
 
     /**
@@ -314,6 +353,24 @@ final class Settings
         # The OKAPI code is only compatible with utf8 and utf8mb4 charsets.
         if (!in_array($dict['DB_CHARSET'], array('utf8', 'utf8mb4'))) {
             throw new exception("DB_CHARSET must be utf8 or utf8mb4.");
+        }
+
+        if (isset($dict['REMOTE_URL_CALL_TIMEOUT'])
+            && !is_int($dict['REMOTE_URL_CALL_TIMEOUT'])
+        ) {
+            throw new Exception("REMOTE_URL_CALL_TIMEOUT must be an integer.");
+        }
+        if (isset($dict['REMOTE_URL_CALL_EXCEPTION_HANDLING'])
+            && !in_array(
+                $dict['REMOTE_URL_CALL_EXCEPTION_HANDLING'],
+                ['common', 'inner', 'log', 'skip']
+            )
+        )
+        {
+            throw new Exception(
+                "REMOTE_URL_CALL_EXCEPTION_HANDLING if defined must be on of "
+                . "'common', 'inner', 'log' or 'skip'"
+            );
         }
     }
 

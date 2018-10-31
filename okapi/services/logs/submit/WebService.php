@@ -11,6 +11,7 @@ use okapi\core\Okapi;
 use okapi\core\OkapiServiceRunner;
 use okapi\core\Request\OkapiInternalRequest;
 use okapi\core\Request\OkapiRequest;
+use okapi\lib\RemoteURLCaller;
 use okapi\Settings;
 
 /**
@@ -686,8 +687,17 @@ class WebService
             }
         }
 
-        # Success. Return the uuids.
+        if (Settings::get('POST_LOG_HOOK') !== null)
+        {
+            # Call post processing remote service URL if set, passing log_uuids
+            # separated by | as parameters
+            RemoteURLCaller::call_url(
+                Settings::get('POST_LOG_HOOK'),
+                [ "log_uuids" => join('|', $log_uuids) ]
+            );
+        }
 
+        # Success. Return the uuids.
         return $log_uuids;
     }
 
