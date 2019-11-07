@@ -683,38 +683,50 @@ class SearchAssistant
 
         if ($tmp = $this->request->get_parameter('awarded'))
         {
+            $supported_award_types = [ "cotp" ];
+
             $awarded_param = explode('|', $this->request->get_parameter('awarded'));
-            $used_fields = [];
+            $awards = [];
             foreach ($awarded_param as $field)
             {
-                $awarded = true;
-                if ($field[0] == '-')
-                {
-                    $awarded = false;
+                $awarded_status = 1;
+                if ($field[0] == '-') {
+                    $awarded_status = -1;
                     $field = substr($field, 1);
                 }
-
-                if (!in_array($field, $used_fields))
-                {
-                    $used_fields[] = $field;
-
+                if (!in_array($field, $supported_award_types)) {
+                    throw new InvalidParam('awarded', "Unsupported field '$field'");
+                }
+                if (!isset($awards[$field])) {
+                    $awards[$field] = $awarded_status;
+                } else {
+                    $awards[$field] = $awards[$field] == $awarded_status ? $awards[$field] : 0;
+                }
+            }
+            foreach ($awards as $award => $award_status)
+            {
+                if ($award_status == 0) {
+                    $where_conds[] = "0=1";
+                    break;
+                } else {
                     # reimplement this if as f.ex. 'switch' in case of another awards
                     if ($field == 'cotp') {
                         # works only in oc.pl branch
                         if(Settings::get('OC_BRANCH') == 'oc.pl') {
-                            if ($awarded) {
+                            if ($award_status == 1) {
                                 $extra_joins[] = "join cache_titled on caches.cache_id = cache_titled.cache_id";
                             } else {
                                 $extra_joins[] = "left join cache_titled on caches.cache_id = cache_titled.cache_id";
                                 $where_conds[] = "cache_titled.cache_id is null";
                             }
+                        } elseif ($award_status == 1) {
+                            $where_conds[] = "0=1";
+                            break;
                         }
-                    } else {
-                        throw new InvalidParam('awarded', "Unsupported field '$field'");
                     }
                 }
             }
-            unset($used_fields);
+            unset($awards);
         }
 
         #

@@ -263,11 +263,23 @@
         internal use.</p>
     </opt>
     <opt name='awarded'>
-        <p>Pipe-separated list of award types. If given and not empty,
-        by default only caches will be included in the response which were
-        granted all of the specified awards. If a '-' character precedes an
-        award type, only caches that <b>not</b> received this award will be
-        included.</p>
+        <p>Pipe-separated list of award types. If given and not empty, by
+        default only caches will be included in the response which were granted
+        all of the specified awards. If a '-' character precedes the award type,
+        only caches that <b>not</b> received this award will be included.</p>
+
+        <p>If you specify the same award type with the same preceding character
+        more than once, you will receive the same result as for the award type
+        given once, e.g. "cotp|cotp" will give the same result as "cotp" and
+        "-cotp|-cotp" will give the same result as "-cotp". If you specify the
+        same award type specified more than once but with <b>not</b> the same
+        preceding character each time, e.g. "-cotp|cotp" or "cotp|-cotp|cotp",
+        you will <b>always</b> receive an empty result.</p>
+
+        <p>Some award types are Opencaching site specific. If this site does not
+        implement any of specified award type and filter include caches granted
+        this award, you will <b>always</b> receive an empty result regardless of
+        other specified award types.</p>
 
         <p>The following award types are supported:</p>
         <ul>
